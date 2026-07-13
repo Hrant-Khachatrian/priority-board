@@ -1,0 +1,82 @@
+{
+  "categories": [
+    {
+      "id": "research",
+      "name": "Research"
+    },
+    {
+      "id": "operations",
+      "name": "Operations"
+    },
+    {
+      "id": "strategy",
+      "name": "Strategy"
+    },
+    {
+      "id": "personal",
+      "name": "Personal"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "review-results",
+      "title": "Review experiment results",
+      "categoryId": "research",
+      "urgency": 4,
+      "importance": 4,
+      "estimateMinutes": 90,
+      "actualSeconds": 0,
+      "status": "active",
+      "recommendationTier": "core",
+      "tags": [
+        "analysis"
+      ],
+      "nextAction": "Summarize the main findings and decide the next experiment."
+    },
+    {
+      "id": "partner-update",
+      "title": "Send partner update",
+      "categoryId": "operations",
+      "urgency": 4,
+      "importance": 3,
+      "estimateMinutes": 30,
+      "actualSeconds": 0,
+      "status": "active",
+      "recommendationTier": "core",
+      "tags": [
+        "communication"
+      ],
+      "nextAction": "Draft a concise status email."
+    },
+    {
+      "id": "quarter-roadmap",
+      "title": "Draft next-quarter roadmap",
+      "categoryId": "strategy",
+      "urgency": 2,
+      "importance": 4,
+      "estimateMinutes": 120,
+      "actualSeconds": 0,
+      "status": "active",
+      "recommendationTier": "second",
+      "tags": [
+        "planning"
+      ],
+      "nextAction": "List three outcomes and the decisions needed for each."
+    },
+    {
+      "id": "health-check",
+      "title": "Book annual health check",
+      "categoryId": "personal",
+      "urgency": 2,
+      "importance": 4,
+      "estimateMinutes": 20,
+      "actualSeconds": 0,
+      "status": "active",
+      "tags": [
+        "health"
+      ],
+      "nextAction": "Choose a clinic and request the first suitable appointment."
+    }
+  ]
+}
+

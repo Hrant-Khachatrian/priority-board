@@ -1,0 +1,17 @@
+# Runtime data (may contain private task details)
+data/board.json
+data/activity-log.jsonl
+data/*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
