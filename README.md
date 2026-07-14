@@ -9,6 +9,13 @@ The interface is intentionally dense: four or more categories can remain
 visible at once, and each task exposes the information needed for daily
 planning without opening a modal.
 
+## Note from the creator
+
+> This is my ~10th attempt to organize my work through some platform. The
+> previous ones included physical notebooks and whiteboards, note-taking apps,
+> Asana, Trello, Google Sheets, Notion and my own vibe-coded app. Let's see how
+> long this one will survive.
+
 ## Features
 
 - Drag tasks between editable categories
