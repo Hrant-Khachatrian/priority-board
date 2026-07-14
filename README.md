@@ -32,6 +32,18 @@ planning without opening a modal.
 
 ## Quick start
 
+### With a coding agent
+
+The easiest way to start is to open Codex, Claude Code, or a similar coding
+agent in a new project and submit this prompt:
+
+> Install [Hrant-Khachatrian/priority-board](https://github.com/Hrant-Khachatrian/priority-board) on my machine and start it.
+
+The agent can clone the repository, check that Python is available, start the
+local server, and give you the URL to open.
+
+### Manually
+
 Priority Board has no third-party runtime dependencies. It needs Python 3.10 or
 newer.
 
@@ -140,4 +152,3 @@ authentication, authorization, TLS, and a production-grade data store.
 ## License
 
 [MIT](LICENSE)
-
