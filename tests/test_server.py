@@ -55,6 +55,15 @@ class PriorityBoardServerTests(unittest.TestCase):
         self.assertGreaterEqual(len(board["categories"]), 1)
         self.assertTrue((self.root / "data" / "board.json").exists())
 
+    def test_interface_includes_mobile_width_and_full_task_form(self):
+        interface = (
+            Path(__file__).resolve().parents[1] / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("calc(100vw - 32px)", interface)
+        self.assertIn("min-width:320px", interface)
+        self.assertIn("newTaskDraft", interface)
+        self.assertIn("refreshRecommendationTiers", interface)
+
     def test_stale_save_preserves_missing_category(self):
         board = self.get_board()
         board["categories"].append({"id": "empty", "name": "Empty"})
@@ -107,4 +116,3 @@ class PriorityBoardServerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

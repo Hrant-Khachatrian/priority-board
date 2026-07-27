@@ -36,6 +36,7 @@ planning without opening a modal.
 - Core and second-tier recommendation colors
 - Append-only JSONL activity log for later analysis
 - JSON files remain on your computer
+- Responsive mobile layout with swipeable, nearly full-width categories
 
 ## Quick start
 
@@ -71,6 +72,25 @@ python3 server.py --port 8080
 
 The server binds to localhost by default. This is deliberate: the app has no
 authentication and is designed as a private, single-user tool.
+
+## Deploy on ChatGPT.site
+
+Priority Board can also be deployed privately on
+[ChatGPT.site](https://chatgpt.site) for access from desktop and mobile
+browsers. A hosted deployment can use ChatGPT sign-in for access control and
+D1 for durable board state and activity logs, so changes persist and remain
+available across devices.
+
+The easiest route is to open this repository in Codex and submit:
+
+> Convert this Priority Board into a private ChatGPT Site. Preserve the current
+> interface and behavior, use D1 for the board and activity log, and deploy it
+> to ChatGPT.site.
+
+The local and hosted storage backends are separate. Treat `data/board.json` and
+`data/activity-log.jsonl` as private: only seed or migrate them into the hosted
+database when you intentionally want that information online. Keep the
+deployment owner-only unless you explicitly want to share the board.
 
 ## Your data
 
@@ -152,9 +172,9 @@ priority-board/
 
 ## Security and scope
 
-Priority Board is a local, single-user application. Do not expose it directly
-to the public internet. If you want multi-user or remote access, add
-authentication, authorization, TLS, and a production-grade data store.
+The included Python server is a local, single-user application. Do not expose
+it directly to the public internet. For remote access, use an authenticated
+deployment such as a private ChatGPT Site with durable server-side storage.
 
 ## License
 
