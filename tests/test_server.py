@@ -39,16 +39,30 @@ class PriorityBoardServerTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
             return json.load(response)
 
-    def post_board(self, board, **metadata):
-        payload = json.dumps({"board": board, **metadata}).encode("utf-8")
+    def post_board(self, board, *, base_revision=None, expected_status=200, **metadata):
+        board = json.loads(json.dumps(board))
+        embedded_revision = board.pop("_revision", None)
+        payload = json.dumps(
+            {
+                "board": board,
+                "baseRevision": base_revision or embedded_revision,
+                **metadata,
+            }
+        ).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base}/api/board",
             data=payload,
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(request) as response:
-            self.assertEqual(response.status, 204)
+        try:
+            with urllib.request.urlopen(request) as response:
+                self.assertEqual(response.status, expected_status)
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code != expected_status:
+                raise
+            return json.load(error)
 
     def test_first_run_copies_example_board(self):
         board = self.get_board()
@@ -63,20 +77,22 @@ class PriorityBoardServerTests(unittest.TestCase):
         self.assertIn("min-width:320px", interface)
         self.assertIn("newTaskDraft", interface)
         self.assertIn("refreshRecommendationTiers", interface)
+        self.assertIn("cycleRecommendationTier", interface)
+        self.assertIn("deleteArmedTaskId", interface)
+        self.assertIn("board_conflict_merged", interface)
 
     def test_stale_save_preserves_missing_category(self):
-        board = self.get_board()
-        board["categories"].append({"id": "empty", "name": "Empty"})
-        self.post_board(board)
-
         stale = self.get_board()
-        stale["categories"] = [
-            category for category in stale["categories"] if category["id"] != "empty"
-        ]
-        self.post_board(stale)
+        current = json.loads(json.dumps(stale))
+        current["categories"].append({"id": "empty", "name": "Empty"})
+        self.post_board(current)
 
-        category_ids = {category["id"] for category in self.get_board()["categories"]}
+        stale["tasks"][0]["title"] = "Edited in a stale tab"
+        conflict = self.post_board(stale, expected_status=409)
+
+        category_ids = {category["id"] for category in conflict["board"]["categories"]}
         self.assertIn("empty", category_ids)
+        self.assertEqual(conflict["error"], "revision_conflict")
 
     def test_explicit_deletion_removes_empty_category_and_logs_event(self):
         board = self.get_board()
@@ -102,6 +118,21 @@ class PriorityBoardServerTests(unittest.TestCase):
         self.assertNotIn("empty", category_ids)
         log = (self.root / "data" / "activity-log.jsonl").read_text(encoding="utf-8")
         self.assertIn('"type": "category_deleted"', log)
+
+    def test_explicit_task_deletion_removes_task_and_logs_event(self):
+        board = self.get_board()
+        task = board["tasks"][0]
+        board["tasks"] = [item for item in board["tasks"] if item["id"] != task["id"]]
+        self.post_board(
+            board,
+            deletedTaskIds=[task["id"]],
+            events=[{"type": "task_deleted", "taskId": task["id"]}],
+        )
+
+        task_ids = {item["id"] for item in self.get_board()["tasks"]}
+        self.assertNotIn(task["id"], task_ids)
+        log = (self.root / "data" / "activity-log.jsonl").read_text(encoding="utf-8")
+        self.assertIn('"type": "task_deleted"', log)
 
     def test_server_rejects_orphaned_tasks(self):
         board = self.get_board()

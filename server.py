@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import threading
@@ -103,6 +104,17 @@ def merge_board(
     return merged
 
 
+def board_revision(board: dict) -> str:
+    """Return a stable revision for optimistic concurrency control."""
+    encoded = json.dumps(
+        board,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def atomic_write_json(path: Path, value: dict) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
@@ -132,12 +144,9 @@ class BoardHandler(SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         path = urlsplit(self.path).path
         if path == "/api/board":
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Length", str(self.board_path.stat().st_size))
-            self.end_headers()
-            self.wfile.write(self.board_path.read_bytes())
+            with SAVE_LOCK:
+                board = json.loads(self.board_path.read_text(encoding="utf-8"))
+            self._send_json({**board, "_revision": board_revision(board)})
             return
         if path == "/api/log":
             body = self.activity_log_path.read_bytes()
@@ -161,6 +170,10 @@ class BoardHandler(SimpleHTTPRequestHandler):
                 raise ValueError("Invalid request body size.")
             payload = json.loads(self.rfile.read(length))
             board = payload.get("board", payload)
+            if not isinstance(board, dict):
+                raise ValueError("Board must be a JSON object.")
+            board = json.loads(json.dumps(board))
+            base_revision = payload.get("baseRevision", board.pop("_revision", None))
             events = payload.get("events", [])
             deleted_category_ids = set(payload.get("deletedCategoryIds", []))
             deleted_task_ids = set(payload.get("deletedTaskIds", []))
@@ -174,6 +187,17 @@ class BoardHandler(SimpleHTTPRequestHandler):
             validate_board(board)
             with SAVE_LOCK:
                 existing = json.loads(self.board_path.read_text(encoding="utf-8"))
+                current_revision = board_revision(existing)
+                if not isinstance(base_revision, str) or base_revision != current_revision:
+                    self._send_json(
+                        {
+                            "error": "revision_conflict",
+                            "revision": current_revision,
+                            "board": existing,
+                        },
+                        status=409,
+                    )
+                    return
                 merged = merge_board(
                     existing,
                     board,
@@ -196,8 +220,7 @@ class BoardHandler(SimpleHTTPRequestHandler):
             self._send_json({"error": str(error)}, status=400)
             return
 
-        self.send_response(204)
-        self.end_headers()
+        self._send_json({"revision": board_revision(merged)})
 
 
 def create_server(

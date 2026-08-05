@@ -33,7 +33,10 @@ planning without opening a modal.
 - Ready, waiting, and blocked states
 - Completed-task visibility toggle
 - Optional tags and next-action notes
-- Core and second-tier recommendation colors
+- Manually assignable core and second-tier recommendation colors
+- Inline two-step task deletion
+- Revision-aware saves that merge concurrent edits instead of silently
+  overwriting another browser tab
 - Append-only JSONL activity log for later analysis
 - JSON files remain on your computer
 - Responsive mobile layout with swipeable, nearly full-width categories
@@ -113,7 +116,13 @@ This prevents accidental task loss.
 
 The server also distinguishes an explicit deletion from an old browser tab
 that is merely missing newer data. Missing records are preserved unless the
-request explicitly marks them for deletion.
+request explicitly marks them for deletion. Revision-aware saves let the
+browser merge non-conflicting changes made in another tab or device and retry
+without silently replacing the newer board.
+
+Tasks have a small × control. The first click arms deletion and changes the
+control to **Delete**; the second click performs the deletion. This avoids
+browser confirmation dialogs while still protecting against accidental taps.
 
 ## Task fields
 
@@ -144,6 +153,7 @@ card color.
 The log is newline-delimited JSON. Events include timer starts and pauses,
 estimate changes, corrected actual time, priority and status changes,
 completions, recurring-task creation, and category deletion.
+Task deletions and automatic conflict merges are logged as well.
 
 The log is intended for later analysis of estimation accuracy, planning
 overhead, work fragmentation, and recurring bottlenecks. It is not required to
